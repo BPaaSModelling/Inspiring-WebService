@@ -1,19 +1,29 @@
 package ch.fhnw.inspire;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.UUID;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+
 import com.google.gson.Gson;
 
-import ch.fhnw.inspire.models.Question;
+import ch.fhnw.inspire.models.QuestionModel;
+import ch.fhnw.inspire.ontology.OntologyManager;
 
 @Path("/admin")
 public class AdminEndpoint {
 	
 	private Gson gson = new Gson();
+	private OntologyManager ontologyManger = OntologyManager.getInstance();
 	
 	@POST
 	@Path("/question/add")
@@ -22,11 +32,18 @@ public class AdminEndpoint {
 		System.out.println("I received: " +json +"\n\n");
 		
 		try{
-			Question question = gson.fromJson(json, Question.class);
-			question.setTestVariable("cooooooooool");
+			QuestionModel question = gson.fromJson(json, QuestionModel.class);
+			
+			UUID test = UUID.randomUUID();
+			
+			ParameterizedSparqlString insertQuery = new ParameterizedSparqlString();
+			insertQuery.append("INSERT DATA { ");
+			insertQuery.append(MessageFormat.format("inspire_data:{0} rdf:type inspire:Question ;", test.toString().replaceAll("-", "")));
+			insertQuery.append(MessageFormat.format("rdfs:label \"{0}\" . ", question.getQuestionLabel()));
+			insertQuery.append("}");
+			ontologyManger.performUpdateQuery(insertQuery);
 			
 			String toBeSent = gson.toJson(question);
-			
 			
 			return Response.status(Status.OK).entity(toBeSent).build();
 			
@@ -35,9 +52,41 @@ public class AdminEndpoint {
 			
 			return Response.status(Status.OK).entity("sorry, no chance").build();
 		}
+	}
+	
+	
+	@GET
+	@Path("/question/list")
+	public Response getAllQuestionList() {
 		
+		ParameterizedSparqlString insertQuery = new ParameterizedSparqlString();
+		insertQuery.append("SELECT * WHERE {");
+		insertQuery.append("?question rdf:type inspire:Question .");
+		insertQuery.append("?question rdfs:label ?label .");
+		insertQuery.append("}");
+
+		ResultSet results = ontologyManger.performSelectQuery(insertQuery);
+		
+		ArrayList<QuestionModel> tempArray = new ArrayList<QuestionModel>();
+		
+		while (results.hasNext()) {
+			QuerySolution soln = results.next();
+			
+			tempArray.add(new QuestionModel(soln.get("?question").toString(), soln.get("?label").toString()));
+		}
+		
+		
+		String jSONString = gson.toJson(tempArray);
+		
+		System.out.println("What I sent: " +jSONString);
+		
+		
+		
+		return Response.status(Status.OK).entity(jSONString).build();
 		
 	}
+	
+	
 	
 	
 

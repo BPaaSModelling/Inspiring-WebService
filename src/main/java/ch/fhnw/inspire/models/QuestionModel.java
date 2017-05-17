@@ -1,13 +1,19 @@
 package ch.fhnw.inspire.models;
 
-public class Question {
+public class QuestionModel {
 	
 	private String questionLabel;
 	private String questionType;
 	private String testVariable;
+	private String questionURI;
 	
-	public Question(){
+	public QuestionModel(){
 		
+	}
+
+	public QuestionModel(String questionURI, String questionLabel) {
+		this.questionLabel = questionLabel;
+		this.questionURI = questionURI;
 	}
 
 	public String getQuestionLabel() {
