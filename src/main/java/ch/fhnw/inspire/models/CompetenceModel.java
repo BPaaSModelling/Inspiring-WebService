@@ -1,5 +1,7 @@
 package ch.fhnw.inspire.models;
 
+import java.util.ArrayList;
+
 public class CompetenceModel {
 
 	/**
@@ -10,12 +12,12 @@ public class CompetenceModel {
 	/**
 	 * reflects rdfs:label
 	 */
-	private String competenceType;
-	private String itSolution;
+	private String competenceLabel;
+	private ITSolutionModel itSolution;
+	private ArrayList<CompetenceTypeModel> competenceList;
 
-	public CompetenceModel(String competenceURI, String competenceType) {
-		this.competenceURI = competenceURI;
-		this.competenceType = competenceType;
+	public CompetenceModel() {
+		this.competenceList = new ArrayList<CompetenceTypeModel>();
 	}
 
 	public String getCompetenceURI() {
@@ -26,20 +28,16 @@ public class CompetenceModel {
 		this.competenceURI = competenceURI;
 	}
 
-	public String getCompetenceType() {
-		return competenceType;
-	}
-
-	public void setCompetenceType(String competenceType) {
-		this.competenceType = competenceType;
-	}
-
-	public String getItSolution() {
+	public ITSolutionModel getItSolution() {
 		return itSolution;
 	}
 
-	public void setItSolution(String itSolution) {
+	public void setItSolution(ITSolutionModel itSolution) {
 		this.itSolution = itSolution;
+	}
+
+	public ArrayList<CompetenceTypeModel> getCompetenceList() {
+		return competenceList;
 	}
 
 }

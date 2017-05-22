@@ -3,11 +3,9 @@ package ch.fhnw.inspire;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.UUID;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -18,9 +16,12 @@ import org.apache.jena.query.ResultSet;
 import com.google.gson.Gson;
 
 import ch.fhnw.inspire.models.CompetenceModel;
+import ch.fhnw.inspire.models.CompetenceTypeModel;
 import ch.fhnw.inspire.models.ITSolutionModel;
+import ch.fhnw.inspire.models.ProviderModel;
 import ch.fhnw.inspire.models.QuestionModel;
 import ch.fhnw.inspire.ontology.OntologyManager;
+import ch.fhnw.inspire.persistence.GlobalVariables;
 
 @Path("/admin")
 public class AdminEndpoint {
@@ -103,11 +104,11 @@ public class AdminEndpoint {
 		
 		ResultSet results = ontologyManger.performSelectQuery(insertQuery);
 		
-		ArrayList<CompetenceModel> tempArray = new ArrayList<CompetenceModel>();
+		ArrayList<CompetenceTypeModel> tempArray = new ArrayList<CompetenceTypeModel>();
 		
 		while (results.hasNext()) {
 			QuerySolution soln = results.next();
-			tempArray.add(new CompetenceModel(soln.get("?compt").toString(), soln.get("?label").toString()));
+			tempArray.add(new CompetenceTypeModel(soln.get("?compt").toString(), soln.get("?label").toString()));
 		}
 		
 		String jSONString = gson.toJson(tempArray);
@@ -143,5 +144,63 @@ public class AdminEndpoint {
 		return Response.status(Status.OK).entity(jSONString).build();
 		
 	}
-
+	
+	
+	@POST
+	@Path("/provider/add")
+	public Response addProvider(String json) {
+		
+		System.out.println("I received: " +json +"\n\n");
+		
+		try{
+			ProviderModel provider = gson.fromJson(json, ProviderModel.class);
+			
+			ArrayList<String> tempCompetenceIDs = new ArrayList<String>();
+			
+			ParameterizedSparqlString insertQuery = new ParameterizedSparqlString();
+			insertQuery.append("INSERT DATA { ");
+			
+			for(CompetenceModel competence : provider.getCompetenceList()){
+				String competenceID = GlobalVariables.getRandomIDWithPrefix("competence");
+				tempCompetenceIDs.add(competenceID);
+				
+				insertQuery.append(MessageFormat.format("inspire_data:{0} rdf:type inspire:Competence ;", competenceID));
+				insertQuery.append(MessageFormat.format("rdfs:label \"{0}\" ;", competenceID));
+				
+				for(CompetenceTypeModel competenceType : competence.getCompetenceList()){
+					insertQuery.append(MessageFormat.format("inspire:CompetenceHasCompetenceType <{0}> ;", competenceType.getCompetenceURI()));
+				}
+				insertQuery.append(".");
+			}
+			
+			
+			String providerID = GlobalVariables.getRandomIDWithPrefix("provider");
+			
+			
+			insertQuery.append(MessageFormat.format("inspire_data:{0} rdf:type inspire:Provider ;", providerID));
+			insertQuery.append(MessageFormat.format("rdfs:label \"{0}\" ;", provider.getProviderName()));
+			
+			for(String compID : tempCompetenceIDs){
+				insertQuery.append(MessageFormat.format("inspire:ProviderHasCompetence inspire_data:{0} ;", compID));
+			}
+			
+			insertQuery.append(".");
+			insertQuery.append("}");
+			
+			System.out.println("\n\n\n"
+								+insertQuery.toString());
+			
+			ontologyManger.performUpdateQuery(insertQuery);
+			
+			
+			return Response.status(Status.OK).entity("{}").build();
+			
+		}catch (com.google.gson.JsonSyntaxException e){
+			System.err.println("could not convert");
+			
+			return Response.status(Status.OK).entity("sorry, no chance").build();
+		}
+	}
+	
+	
 }
