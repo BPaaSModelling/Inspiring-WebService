@@ -1,19 +1,22 @@
 package ch.fhnw.inspire.models;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class QuestionModel {
 	
 	private String questionLabel;
 	private String questionType;
-	private String testVariable;
 	private String questionURI;
+	private Set<AnswerModel> answerList;
 	
-	public QuestionModel(){
-		
-	}
 
-	public QuestionModel(String questionURI, String questionLabel) {
+	public QuestionModel(String questionURI, String questionLabel, String questionType) {
 		this.questionLabel = questionLabel;
 		this.questionURI = questionURI;
+		this.questionType = questionType;
+		answerList = new HashSet<AnswerModel>();
+		System.out.println("questionModel: " +questionURI +"::" +questionLabel +"::" +questionType +"::" );
 	}
 
 	public String getQuestionLabel() {
@@ -32,12 +35,20 @@ public class QuestionModel {
 		this.questionType = questionType;
 	}
 
-	public void setTestVariable(String testVariable) {
-		this.testVariable = testVariable;
+	public void setQuestionURI(String questionURI) {
+		this.questionURI = questionURI;
+	}
+
+	public Set<AnswerModel> getAnswerList() {
+		return this.answerList;
 	}
 	
-	public String getTestVariable() {
-		return this.testVariable;
+	public void setAnswerList(Set<AnswerModel> answerList) {
+		this.answerList = answerList;
+	}
+
+	public void addAnswer(AnswerModel answer) {
+		this.answerList.add(answer);
 	}
 
 }

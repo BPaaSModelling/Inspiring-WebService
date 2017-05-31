@@ -33,7 +33,7 @@ public class OntologyManager {
 		
 		addNamespacesToQuery(query);
 		
-		System.out.println(query.toString());
+		System.out.println("performUpdateQuery " +query.toString());
 		
 		UpdateRequest update = UpdateFactory.create(query.toString());
 		UpdateProcessor up = UpdateExecutionFactory.createRemote(update, UPDATEENDPOINT);
@@ -47,11 +47,11 @@ public class OntologyManager {
 		}
 	}
 
-	public ResultSet performSelectQuery(ParameterizedSparqlString queryStr) {
+	public QueryExecution performSelectQuery(ParameterizedSparqlString queryStr) {
 		addNamespacesToQuery(queryStr);
+		System.out.println("\nperformed SELECT: " +queryStr.toString());
 		Query query = QueryFactory.create(queryStr.toString());
-		QueryExecution queryExecution = QueryExecutionFactory.sparqlService(QUERYENDPOINT, query);
-		return queryExecution.execSelect();
+		return QueryExecutionFactory.sparqlService(QUERYENDPOINT, query);
 	}
 	
 }
